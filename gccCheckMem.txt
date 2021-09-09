@@ -1,62 +1,147 @@
-
-
-root@sdn:~/kevin# ./vector_test-4.x
-=================================================================
-==18289==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x61900000fe80 at pc 0x7fed93c3cbec bp 0x7ffcc4606b00 sp 0x7ffcc46062a8
-WRITE of size 5000 at 0x61900000fe80 thread T0
-    #0 0x7fed93c3cbeb in __asan_memset (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x8cbeb)
-    #1 0x401bf7 in main (/root/kevin/vector_test-4.x+0x401bf7)
-    #2 0x7fed9326e83f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
-    #3 0x4015d8 in _start (/root/kevin/vector_test-4.x+0x4015d8)
-
-0x61900000fe80 is located 0 bytes to the right of 1024-byte region [0x61900000fa80,0x61900000fe80)
-allocated by thread T0 here:
-    #0 0x7fed93c48602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
-    #1 0x401bdd in main (/root/kevin/vector_test-4.x+0x401bdd)
-    #2 0x7fed9326e83f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
-
 int main()
+
 {
+
+
 
 int *ptr=(int *)malloc(1024);
 
-   memset(ptr,0,5000);
+
+
+  memset(ptr,0,5000);
+
+
 
 }
 
 
 
+
+
+g++ -fsanitize=address vector_test.cpp  -lasan  -o vector_test-4.x
+
+
+
+在有泄漏和越界的时候优先显示越界
+
+root@sdn:~/kevin# ./vector_test-4.x
+
+=================================================================
+
+==18289==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x61900000fe80 at pc 0x7fed93c3cbec bp 0x7ffcc4606b00 sp 0x7ffcc46062a8
+
+WRITE of size 5000 at 0x61900000fe80 thread T0
+
+    #0 0x7fed93c3cbeb in __asan_memset (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x8cbeb)
+
+    #1 0x401bf7 in main (/root/kevin/vector_test-4.x+0x401bf7)
+
+    #2 0x7fed9326e83f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+
+    #3 0x4015d8 in _start (/root/kevin/vector_test-4.x+0x4015d8)
+
+
+
+0x61900000fe80 is located 0 bytes to the right of 1024-byte region [0x61900000fa80,0x61900000fe80)
+
+allocated by thread T0 here:
+
+    #0 0x7fed93c48602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+
+    #1 0x401bdd in main (/root/kevin/vector_test-4.x+0x401bdd)
+
+    #2 0x7fed9326e83f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+
+
+
 SUMMARY: AddressSanitizer: heap-buffer-overflow ??:0 __asan_memset
+
 Shadow bytes around the buggy address:
+
   0x0c327fff9f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
   0x0c327fff9f90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
   0x0c327fff9fa0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
   0x0c327fff9fb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
   0x0c327fff9fc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
 =>0x0c327fff9fd0:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
   0x0c327fff9fe0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
   0x0c327fff9ff0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
   0x0c327fffa000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
   0x0c327fffa010: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
   0x0c327fffa020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+
 Shadow byte legend (one shadow byte represents 8 application bytes):
+
   Addressable:           00
+
   Partially addressable: 01 02 03 04 05 06 07
+
   Heap left redzone:       fa
+
   Heap right redzone:      fb
+
   Freed heap region:       fd
+
   Stack left redzone:      f1
+
   Stack mid redzone:       f2
+
   Stack right redzone:     f3
+
   Stack partial redzone:   f4
+
   Stack after return:      f5
+
   Stack use after scope:   f8
+
   Global redzone:          f9
+
   Global init order:       f6
+
   Poisoned by user:        f7
+
   Container overflow:      fc
+
   Array cookie:            ac
+
   Intra object redzone:    bb
+
   ASan internal:           fe
+
 ==18289==ABORTING
 
+root@sdn:~/kevin# vim vector_test.cpp
+
+root@sdn:~/kevin# g++ -fsanitize=address vector_test.cpp  -lasan  -o vector_test-4.x
+
+root@sdn:~/kevin# ./vector_test-4.x
+
+
+
+=================================================================
+
+==18995==ERROR: LeakSanitizer: detected memory leaks
+
+
+
+Direct leak of 1024 byte(s) in 1 object(s) allocated from:
+
+    #0 0x7ff27b6a0602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+
+    #1 0x401b8d in main (/root/kevin/vector_test-4.x+0x401b8d)
+
+    #2 0x7ff27acc683f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+
+
+
+SUMMARY: AddressSanitizer: 1024 byte(s) leaked in 1 allocation(s).
